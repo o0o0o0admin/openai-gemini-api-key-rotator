@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  openai-gemini-api-key-rotator:
+    build: .
+    container_name: openai-gemini-api-key-rotator
+    ports:
+      - "${PORT:-8990}:${PORT:-8990}"
+    environment:
+      - PORT=${PORT:-8990}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - GEMINI_API_KEYS=${GEMINI_API_KEYS}
+      - OPENAI_API_KEYS=${OPENAI_API_KEYS}
+      # Add any other environment variables as needed
+    volumes:
+      - .env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-8990}/admin', (res) => {process.exit(res.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
